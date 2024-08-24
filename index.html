@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FIT2102 A1 2023</title>
+  <style>
+    /* The CSS code will be here */
+  </style>
+</head>
+<body>
+  <h1>Tetris</h1>
+  <main id="main" class="flex row">
+    <svg id="svgCanvas">
+      <!-- Game Over text box -->
+      <g id="gameOver" visibility="hidden">
+        <rect x="26" y="120" fill="var(--background-color)" height="60" width="152"></rect>
+        <text x="36" y="150" fill="var(--highlight-color)" font-size="22" font-weight="bolder">Game Over</text>
+        <text x="36" y="170" font-size="12" fill="var(--text-color)">Press "Enter" to restart</text>
+      </g>
+      <!-- Game Stop text box -->
+      <g id="gameStop" visibility="hidden">
+        <rect x="26" y="120" fill="var(--background-color)" height="60" width="152"></rect>
+        <text x="102" y="150" font-size="24" font-weight="bold" text-anchor="middle" fill="var(--highlight-color)">Game Stop</text>
+        <text x="46" y="170" font-size="12" fill="var(--text-color)">Press "Y" to resume</text>
+      </g>
+    </svg>
+    <div id="sideBar" class="flex col">
+      <div class="flex row align-center">
+        <svg id="svgPreview"></svg>
+        <div id="info" class="flex col">
+          <div class="text">
+            <span class="left">Level: </span>
+            <span class="right" id="levelText">...</span>
+          </div>
+          <div class="text">
+            <span class="left">Score: </span>
+            <span class="right" id="scoreText">...</span>
+          </div>
+          <div class="text">
+            <span class="left">Highscore: </span>
+            <span class="right" id="highScoreText">...</span>
+          </div>
+        </div>
+      </div>
+      <h2 class="controls-header">Controls</h2>
+      <div class="rotate-box" >
+
+        <span class="rotate-text">Rotate: &larr;</span>
+      </div>
+      <div class="rotate-box">
+        <span class="rotate-text">Stop Game: <kbd>Z</kbd></span>
+      </div>
+      <div class="rotate-box">
+        <span class="rotate-text">Move Left: <kbd>A</kbd></span>
+      </div>
+      <div class="rotate-box">
+        <span class="rotate-text">Move Right: <kbd>D</kbd></span>
+      </div>
+      <div class="rotate-box">
+        <span class="rotate-text">Speed Up: <kbd>S</kbd></span>
+      </div>
+    </div>
+  </main>
+  <script type="module" src="./src/main.ts"></script>
+</body>
+</html>
