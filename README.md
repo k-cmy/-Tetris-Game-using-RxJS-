@@ -2,7 +2,7 @@
 
 A modern, professional implementation of the classic Tetris game built with **TypeScript**, **RxJS**, and **Vite**. Features a beautiful dark theme with neon effects, classic Tetris colors, and responsive design.
 
-![Tetris Game Screenshot](image.png)
+![Tetris Game Screenshot](image2.png)
 
 ## 🚀 Live Demo
 
