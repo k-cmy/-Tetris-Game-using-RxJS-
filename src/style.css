@@ -1,151 +1,368 @@
-:root {
-  --background-color: #2e2e2e; /* Dark background for the page */
-  --primary-color: #f0f0f0; /* Light background for the main container */
-  --highlight-color: #ffcc00; /* Bright yellow for highlights */
-  --border-color: #333; /* Dark border color */
-  --shadow-color: rgba(0.1, 0, 0.5, 0.5); /* Semi-transparent shadow color */
-  --text-color: #ffffff; /* White text color */
-  --title-background: #ffcc00; /* Yellow background for the title */
-  --title-shadow: #b38800; /* Darker yellow for title shadow */
-  --info-background: #4d4d4d; /* Dark gray for the info section */
-  --info-text: #ffffff; /* White text for the info section */
-} 
+/* ========== CSS RESET & BASE STYLES ========== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
+/* ========== CSS CUSTOM PROPERTIES ========== */
+:root {
+  /* Main colors */
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #1a1a1a;
+  --bg-tertiary: #2a2a2a;
+  
+  /* Game board colors */
+  --board-bg: #000000;
+  --board-border: #333;
+  --grid-line: #222;
+  
+  /* UI colors */
+  --text-primary: #ffffff;
+  --text-secondary: #cccccc;
+  --text-accent: #00ffff;
+  --text-warning: #ff4444;
+  --text-success: #44ff44;
+  
+  /* Classic Tetris colors */
+  --tetris-cyan: #00ffff;
+  --tetris-blue: #0000ff;
+  --tetris-orange: #ff8800;
+  --tetris-yellow: #ffff00;
+  --tetris-green: #00ff00;
+  --tetris-purple: #8800ff;
+  --tetris-red: #ff0000;
+  
+  /* Neon effects */
+  --neon-glow: 0 0 5px currentColor, 0 0 10px currentColor, 0 0 15px currentColor;
+  --subtle-glow: 0 0 10px rgba(0, 255, 255, 0.3);
+  
+  /* Spacing */
+  --space-xs: 0.5rem;
+  --space-sm: 1rem;
+  --space-md: 1.5rem;
+  --space-lg: 2rem;
+  --space-xl: 3rem;
+  
+  /* Game dimensions - using larger sizes for better visibility */
+  --block-size: 40px;
+  --board-width: 400px;  /* 10 blocks * 40px */
+  --board-height: 800px; /* 20 blocks * 40px */
+  --preview-size: 160px;
+  --sidebar-width: 300px;
+}
+
+/* ========== FONTS & TYPOGRAPHY ========== */
 body {
-  background-color: var(--background-color);
-  padding: 2em;
-  padding-top: 4em;
-  font-family: Arial, Helvetica, sans-serif;
-  color: var(--text-color);
+  font-family: 'Orbitron', 'Courier New', monospace;
+  background: linear-gradient(135deg, var(--bg-primary) 0%, #001122 50%, var(--bg-primary) 100%);
+  color: var(--text-primary);
+  height: 100vh;
+  width: 100vw;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
+  padding: 0;
+  margin: 0;
+  overflow: hidden; /* Prevent scrolling */
 }
 
-h1 {
-  font-size: 3em;
-  font-weight: bolder;
-  background-color: var(--title-background);
-  border-radius: 0.05em;
-  padding: 0.1em;
-  box-shadow: 0 0 0.15em var(--shadow-color);
-  text-shadow: 0 0 1px var(--title-shadow);
-}
-
-h2.controls-header {
-  font-size: 1.5em;
-  font-weight: bold;
-  color: var(--highlight-color);
-  margin: 1em 0 0.5em 0;
-  text-align: center;
-  box-shadow: 0 0 0.15em var(--shadow-color);
-}
-
-.flex {
+/* ========== MAIN LAYOUT ========== */
+.game-container {
+  width: 100vw;
+  height: 100vh;
   display: flex;
-  flex-wrap: wrap; /* Ensure children can wrap if needed */
-  row-gap: 1em;
-  column-gap: 1em;
-}
-
-#info {
-  background-color: var(--info-background);
-  padding: 1em;
-  border-radius: 0.25em;
-  box-sizing: border-box; /* Include padding and border in the element's total width and height */
-}
-
-#svgPreview {
-  background-color: #666;
-  height: 100px; /* Ensure it has a fixed height */
-  margin-right: 1em; /* Add some space between preview and info */
-}
-
-.col {
   flex-direction: column;
+  max-width: none;
+  padding: 1rem;
 }
 
-.row {
-  flex-direction: row;
+.game-header {
+  text-align: center;
+  margin-bottom: 1rem;
+  flex-shrink: 0;
 }
 
-main {
+.game-title {
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-weight: 900;
+  color: var(--tetris-cyan);
+  text-shadow: var(--neon-glow);
+  letter-spacing: 0.2em;
+  margin-bottom: 0.5rem;
+  animation: pulse-glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes pulse-glow {
+  from { text-shadow: 0 0 5px var(--tetris-cyan), 0 0 10px var(--tetris-cyan), 0 0 15px var(--tetris-cyan); }
+  to { text-shadow: 0 0 10px var(--tetris-cyan), 0 0 20px var(--tetris-cyan), 0 0 30px var(--tetris-cyan); }
+}
+
+.subtitle {
+  font-size: clamp(0.8rem, 1.5vw, 1rem);
+  color: var(--text-secondary);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.game-main {
   display: flex;
-  background-color: var(--primary-color);
-  border-radius: 0.25em;
-  box-shadow: 0 0 0.5em var(--border-color);
-  flex-wrap: wrap;
-  padding: 1em;
-  width: 700px; /* Increase the maximum width */
-  max-height: 700px; /* Increase the maximum height */
-}
-
-.align-center {
+  gap: 2rem;
   align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 0;
 }
 
-svg {
-  border-radius: 0.1em;
-  border: 5px solid var(--border-color);
-  background-color: var(--primary-color);
-  box-shadow: 0 0 0.5em var(--shadow-color);
-  margin: 0.5em;
+/* ========== GAME BOARD ========== */
+.game-board-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
 }
 
-svg rect {
-  stroke: var(--border-color);
-  stroke-width: 2px;
+.game-board-wrapper {
+  background: var(--bg-secondary);
+  padding: 1rem;
+  border-radius: 10px;
+  border: 3px solid var(--tetris-cyan);
+  box-shadow: 
+    var(--subtle-glow),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  position: relative;
 }
 
-#svgCanvas {
-  background-color: #333; /* Dark background for the grid */
+.game-board {
+  width: var(--board-width);
+  height: var(--board-height);
+  background: var(--board-bg);
+  border: 2px solid var(--board-border);
+  display: block;
+  border-radius: 5px;
 }
 
-#info > .text {
-  font-weight: bold;
-  color: var(--info-text);
+/* ========== SIDEBAR ========== */
+.game-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: var(--sidebar-width);
+  height: var(--board-height);
+  overflow-y: auto;
+  flex-shrink: 0;
 }
 
-.left {
-  font-size: 1.1em;
-  float: left;
+/* ========== SECTIONS ========== */
+.next-piece-section,
+.stats-section,
+.controls-section {
+  background: var(--bg-secondary);
+  border: 2px solid var(--bg-tertiary);
+  border-radius: 10px;
+  padding: 1rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
 }
 
-.right {
-  font-size: 1em;
-  float: right;
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--tetris-cyan);
+  text-align: center;
+  margin-bottom: 1rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--bg-tertiary);
+  padding-bottom: 0.5rem;
 }
 
-.rotate-box {
+/* ========== NEXT PIECE PREVIEW ========== */
+.next-piece-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: var(--preview-size);
+  background: var(--board-bg);
+  border: 2px solid var(--board-border);
+  border-radius: 5px;
+  margin: 0 auto;
+}
+
+.next-piece-preview {
+  width: 120px;
+  height: 120px;
+  background: var(--board-bg);
+}
+
+/* ========== STATISTICS ========== */
+.stats-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.stat-item {
   display: flex;
   justify-content: space-between;
-  padding: 4px 8px;
-  background-color: var(--info-background); /* Use info background color */
-  border: 1px solid var(--highlight-color); /* Highlight color border */
-  border-radius: 5px;
-  margin-top: 6px;
   align-items: center;
-  width: 120px;
-  height: auto;
-  box-shadow: 0 0 0.5em var(--shadow-color); /* Use shadow color */
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--bg-tertiary);
 }
 
-.rotate-text {
-  color: var(--info-text); /* Use info text color */
-  font-weight: bold;
+.stat-item:last-child {
+  border-bottom: none;
 }
 
-kbd { 
-  display: inline-block;
-  padding: 3px 4px;
-  font-size: 12px;
-  line-height: 9px;
-  color: #444;
-  vertical-align: middle;
-  background-color: #f7f7f7;
-  border: solid 1px #ccc;
-  border-bottom-color: #bbb;
+.stat-label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-weight: 400;
+  letter-spacing: 0.05em;
+}
+
+.stat-value {
+  font-size: 1.2rem;
+  color: var(--tetris-cyan);
+  font-weight: 700;
+  text-shadow: 0 0 5px currentColor;
+}
+
+/* ========== CONTROLS ========== */
+.controls-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.control-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  background: var(--bg-tertiary);
+  border-radius: 5px;
+  transition: background-color 0.2s ease;
+}
+
+.control-item:hover {
+  background: #333;
+}
+
+.control-key {
+  background: var(--bg-primary);
+  color: var(--tetris-cyan);
+  padding: 0.4rem 0.8rem;
   border-radius: 3px;
-  box-shadow: inset 0 -1px 0 #bbb;
+  font-weight: 700;
+  font-size: 1rem;
+  min-width: 2.5rem;
+  text-align: center;
+  border: 1px solid var(--bg-tertiary);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.control-action {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+/* ========== RESPONSIVE DESIGN ========== */
+@media (max-width: 1200px) {
+  .game-main {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .game-sidebar {
+    width: 100%;
+    max-width: 500px;
+    height: auto;
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: visible;
+  }
+  
+  .next-piece-section,
+  .stats-section,
+  .controls-section {
+    min-width: 200px;
+  }
+  
+  :root {
+    --block-size: 30px;
+    --board-width: 300px;
+    --board-height: 600px;
+  }
+}
+
+@media (max-width: 768px) {
+  .game-title {
+    font-size: 2rem;
+  }
+  
+  .game-sidebar {
+    flex-direction: column;
+  }
+  
+  :root {
+    --block-size: 25px;
+    --board-width: 250px;
+    --board-height: 500px;
+  }
+}
+
+@media (max-width: 480px) {
+  .game-container {
+    padding: 0.5rem;
+  }
+  
+  .game-title {
+    font-size: 1.5rem;
+  }
+  
+  :root {
+    --block-size: 20px;
+    --board-width: 200px;
+    --board-height: 400px;
+  }
+}
+
+/* ========== BLOCK ANIMATIONS ========== */
+.game-board rect {
+  transition: opacity 0.1s ease;
+}
+
+.game-board rect:hover {
+  opacity: 0.8;
+}
+
+/* ========== GAME OVER & PAUSE OVERLAYS ========== */
+#gameOver rect,
+#gameStop rect {
+  filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.8));
+}
+
+#gameOver text,
+#gameStop text {
+  filter: drop-shadow(0 0 5px currentColor);
+}
+
+/* ========== SCROLLBAR STYLING ========== */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--tetris-cyan);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #00aaaa;
 }

@@ -16,21 +16,19 @@
  * Entry point for the Tetris game. Initializes game loop and handles user input.
  */
 import "./style.css";
-import { BehaviorSubject, fromEvent, interval,merge} from "rxjs";
-import { filter ,map, scan, switchMap} from "rxjs/operators";
-import {initialState ,tick} from "./state";
-import {render,renderNextShape,updateBlockElements} from "./view";
-import {Key , State} from "./types";
-import { rotateShape, randomColors, emptyGrid, squareShape } from "./util";
+import { BehaviorSubject, fromEvent, interval, merge } from "rxjs";
+import { filter, map, scan, switchMap } from "rxjs/operators";
+import { initialState, tick } from "./state";
+import { render, renderNextShape, updateBlockElements } from "./view";
+import { Key, State } from "./types";
+import { rotateShape, emptyGrid, emptyColorGrid, getRandomTetromino, createTetromino } from "./util";
 
-
-const key$ = fromEvent<KeyboardEvent>(document, "keydown" || "keypress");
+const key$ = fromEvent<KeyboardEvent>(document, "keydown");
 
 const fromKey = (keyCode: Key) =>
   key$.pipe(filter(({ code }) => code === keyCode));
 
-
-// Keyboard control Keys  observables
+// Keyboard control Keys observables
 const left$ = fromKey("KeyA");
 const right$ = fromKey("KeyD");
 const down$ = fromKey("KeyS");
@@ -43,12 +41,11 @@ const enter$ = fromKey("Enter");
  * Creates and subscribes to the game loop and user input observables.
  */
 export function main() {
-
-// Determine game tick rate and create an observable for game ticks
+  // Determine game tick rate and create an observable for game ticks
   const tickRate$ = new BehaviorSubject<number>(initialState.initialSpeed);
   const tick$ = tickRate$.pipe(switchMap(rate => interval(rate)));
 
-  // create input observables wih a type to identify 
+  // create input observables with a type to identify 
   const moveLeft$ = left$.pipe(map(() => ({ type: 'MOVE_LEFT' })));
   const moveRight$ = right$.pipe(map(() => ({ type: 'MOVE_RIGHT' })));
   const moveDown$ = down$.pipe(map(() => ({ type: 'MOVE_DOWN' })));
@@ -59,7 +56,7 @@ export function main() {
   const ticks$ = tick$.pipe(map(() => ({ type: 'TICK' })));
 
   // Combine user input observables and tick observable
-  const actions$ = merge(moveDown$,moveLeft$,moveRight$,rotateShape$,restartGame$, stopGame$,resumeGame$,ticks$)
+  const actions$ = merge(moveDown$, moveLeft$, moveRight$, rotateShape$, restartGame$, stopGame$, resumeGame$, ticks$)
 
   const state$ = actions$.pipe(
     //processes user actions and updates state
@@ -81,7 +78,7 @@ export function main() {
           case 'STOP':
             return stopGame(state);
           case 'RESUME':
-              return resumeGame(state);
+            return resumeGame(state);
           default:
             return state;
         }
@@ -90,10 +87,9 @@ export function main() {
       // Update tick rate based on speed
       if (newState.speed !== state.speed) { // when cleared row more than 3 rows
         tickRate$.next(newState.speed);
-    
       }
       return newState;
-    }, initialState)// use initalState as a start
+    }, initialState)// use initialState as a start
   );
 
   state$.subscribe((state) => {// contain side effects 
@@ -102,40 +98,38 @@ export function main() {
   });
 
   /**
- * Updates the game state based on a provided action if the game is not ended.
- *
- * @param state - The current game state.
- * @param action - A function that takes the current state and returns the updated state.
- * @returns The updated game state if the game is not ended; otherwise, the original state.
- */
+   * Updates the game state based on a provided action if the game is not ended.
+   *
+   * @param state - The current game state.
+   * @param action - A function that takes the current state and returns the updated state.
+   * @returns The updated game state if the game is not ended; otherwise, the original state.
+   */
   const updateState = (state: State, action: (state: State) => State): State =>
-  !state.gameEnd ? action(state) : state;
+    !state.gameEnd ? action(state) : state;
 
-
-/**
- * Moves the shape of blocks to the left within the game grid.
- * @param state Current game state
- * @returns Updated game state after moving the shape of blocks left
- */
+  /**
+   * Moves the shape of blocks to the left within the game grid.
+   * @param state Current game state
+   * @returns Updated game state after moving the shape of blocks left
+   */
   const moveLeft = (state: State): State => {
     return updateState(state, (s) => tick(s, [0, -1]));
   };
   
   /**
- * Moves the shape of blocks to the right within the game grid.
- * @param state Current game state
- * @returns Updated game state after moving the shape of blocks right
- */
+   * Moves the shape of blocks to the right within the game grid.
+   * @param state Current game state
+   * @returns Updated game state after moving the shape of blocks right
+   */
   const moveRight = (state: State): State => {
     return updateState(state, (s) => tick(s, [0, 1]));
   };
-  
 
   /**
- * Moves the shape of blocks downward within the game grid.
- * @param state Current game state
- * @returns Updated game state after moving the shape of blocks down
- */
+   * Moves the shape of blocks downward within the game grid.
+   * @param state Current game state
+   * @returns Updated game state after moving the shape of blocks down
+   */
   const moveDown = (state: State): State => {
     return updateState(state, (s) => {
       const newState = tick(s, [1, 0]);
@@ -146,60 +140,59 @@ export function main() {
       return updatedStateWithScore;
     });
   };
-  
 
   /**
- * Rotates the shape of blocks shape clockwise.
- * @param state Current game state
- * @returns Updated game state after rotating the shape of blocks
- */
+   * Rotates the current tetromino shape clockwise.
+   * @param state Current game state
+   * @returns Updated game state after rotating the tetromino
+   */
   const rotate = (state: State): State => {
     return updateState(state, (s) => {
-      const rotatedShape = rotateShape(s.shape);
-      const newState = { ...s, shape: rotatedShape };
+      const rotatedShape = rotateShape(s.currentTetromino.shape);
+      const rotatedTetromino = {
+        ...s.currentTetromino,
+        shape: rotatedShape
+      };
+      const newState = { ...s, currentTetromino: rotatedTetromino };
       return newState;
     });
   };
-  
 
- /**
- *  Stop the Game.
- * @param state Current game state
- * @returns Updated game state to stop the game.
- */
+  /**
+   * Stop the Game.
+   * @param state Current game state
+   * @returns Updated game state to stop the game.
+   */
   const stopGame = (state: State): State => {
     return updateState(state, (s) => ({ ...s, gameStop: true }));
   };
-  
-  
-   /**
- *  Resume the Game.
- * @param state Current game state
- * @returns Updated game state to resume the game.
- */
-   const resumeGame = (state: State): State => {
+
+  /**
+   * Resume the Game.
+   * @param state Current game state
+   * @returns Updated game state to resume the game.
+   */
+  const resumeGame = (state: State): State => {
     return updateState(state, (s) => ({ ...s, gameStop: false }));
   };
   
   /**
- * Restarts the game after it has ended.
- * @param state Current game state
- * @returns Updated game state after restarting the game
- */
- // create the seed for the random color
-  const SEED = 1234;
-
+   * Restarts the game after it has ended.
+   * @param state Current game state
+   * @returns Updated game state after restarting the game
+   */
   const restartGame = (state: State): State => {
     if (state.gameEnd) {
       const newBlockElements = updateBlockElements(initialState);
       const newState = {
         ...initialState,
         gameEnd: false,
-        highScore: Math.max(state.score, state.highScore),// get the highest score of the round that scores the highest
+        highScore: Math.max(state.score, state.highScore), // get the highest score of the round that scores the highest
         score: 0,
         grid: emptyGrid(),
-        shape: squareShape,
-        color: randomColors(),
+        colorGrid: emptyColorGrid(),
+        currentTetromino: createTetromino('O'),
+        nextTetromino: getRandomTetromino(),
         blockElements: newBlockElements,
       };
       return newState;
@@ -207,7 +200,6 @@ export function main() {
     return state;
   };
 }
-
 
 /**
  * Initializes the game loop and user input handling upon page load.

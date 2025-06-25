@@ -3,65 +3,93 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FIT2102 A1 2023</title>
+  <title>Tetris Game</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
   <style>
     /* The CSS code will be here */
   </style>
 </head>
 <body>
-  <h1>Tetris</h1>
-  <main id="main" class="flex row">
-    <svg id="svgCanvas">
-      <!-- Game Over text box -->
-      <g id="gameOver" visibility="hidden">
-        <rect x="26" y="120" fill="var(--background-color)" height="60" width="152"></rect>
-        <text x="36" y="150" fill="var(--highlight-color)" font-size="22" font-weight="bolder">Game Over</text>
-        <text x="36" y="170" font-size="12" fill="var(--text-color)">Press "Enter" to restart</text>
-      </g>
-      <!-- Game Stop text box -->
-      <g id="gameStop" visibility="hidden">
-        <rect x="26" y="120" fill="var(--background-color)" height="60" width="152"></rect>
-        <text x="102" y="150" font-size="24" font-weight="bold" text-anchor="middle" fill="var(--highlight-color)">Game Stop</text>
-        <text x="46" y="170" font-size="12" fill="var(--text-color)">Press "Y" to resume</text>
-      </g>
-    </svg>
-    <div id="sideBar" class="flex col">
-      <div class="flex row align-center">
-        <svg id="svgPreview"></svg>
-        <div id="info" class="flex col">
-          <div class="text">
-            <span class="left">Level: </span>
-            <span class="right" id="levelText">...</span>
+  <div class="game-container">
+    <header class="game-header">
+      <h1 class="game-title">TETRIS</h1>
+      <div class="subtitle">Classic Block Puzzle Game</div>
+    </header>
+    
+    <main id="main" class="game-main">
+      <div class="game-board-container">
+        <div class="game-board-wrapper">
+          <svg id="svgCanvas" class="game-board">
+            <!-- Game Over text box -->
+            <g id="gameOver" visibility="hidden">
+              <rect x="100" y="360" fill="rgba(0, 0, 0, 0.9)" height="80" width="200" rx="10"></rect>
+              <text x="200" y="390" fill="#ff4444" font-size="28" font-weight="900" text-anchor="middle" font-family="Orbitron">GAME OVER</text>
+              <text x="200" y="415" font-size="14" fill="#ffffff" text-anchor="middle" font-family="Orbitron">Press ENTER to restart</text>
+            </g>
+            <!-- Game Stop text box -->
+            <g id="gameStop" visibility="hidden">
+              <rect x="100" y="360" fill="rgba(0, 0, 0, 0.9)" height="80" width="200" rx="10"></rect>
+              <text x="200" y="390" font-size="28" font-weight="900" text-anchor="middle" fill="#ffcc00" font-family="Orbitron">PAUSED</text>
+              <text x="200" y="415" font-size="14" fill="#ffffff" text-anchor="middle" font-family="Orbitron">Press Y to resume</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+      
+      <div id="sideBar" class="game-sidebar">
+        <div class="next-piece-section">
+          <h3 class="section-title">NEXT</h3>
+          <div class="next-piece-container">
+            <svg id="svgPreview" class="next-piece-preview"></svg>
           </div>
-          <div class="text">
-            <span class="left">Score: </span>
-            <span class="right" id="scoreText">...</span>
+        </div>
+        
+        <div class="stats-section">
+          <h3 class="section-title">STATISTICS</h3>
+          <div id="info" class="stats-container">
+            <div class="stat-item">
+              <span class="stat-label">LEVEL</span>
+              <span class="stat-value" id="levelText">1</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">SCORE</span>
+              <span class="stat-value" id="scoreText">0</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">HIGH SCORE</span>
+              <span class="stat-value" id="highScoreText">0</span>
+            </div>
           </div>
-          <div class="text">
-            <span class="left">Highscore: </span>
-            <span class="right" id="highScoreText">...</span>
+        </div>
+        
+        <div class="controls-section">
+          <h3 class="section-title">CONTROLS</h3>
+          <div class="controls-container">
+            <div class="control-item">
+              <span class="control-key">←</span>
+              <span class="control-action">Rotate</span>
+            </div>
+            <div class="control-item">
+              <span class="control-key">A</span>
+              <span class="control-action">Move Left</span>
+            </div>
+            <div class="control-item">
+              <span class="control-key">D</span>
+              <span class="control-action">Move Right</span>
+            </div>
+            <div class="control-item">
+              <span class="control-key">S</span>
+              <span class="control-action">Soft Drop</span>
+            </div>
+            <div class="control-item">
+              <span class="control-key">Z</span>
+              <span class="control-action">Pause</span>
+            </div>
           </div>
         </div>
       </div>
-      <h2 class="controls-header">Controls</h2>
-      <div class="rotate-box" >
-
-        <span class="rotate-text">Rotate: &larr;</span>
-      </div>
-      <div class="rotate-box">
-        <span class="rotate-text">Stop Game: <kbd>Z</kbd></span>
-      </div>
-      <div class="rotate-box">
-        <span class="rotate-text">Move Left: <kbd>A</kbd></span>
-      </div>
-      <div class="rotate-box">
-        <span class="rotate-text">Move Right: <kbd>D</kbd></span>
-      </div>
-      <div class="rotate-box">
-        <span class="rotate-text">Speed Up: <kbd>S</kbd></span>
-      </div>
-    </div>
-  </main>
+    </main>
+  </div>
   <script type="module" src="./src/main.ts"></script>
 </body>
 </html>

@@ -1,53 +1,76 @@
 /**
  * Utility functions for various Tetris game operations.
  */
-import { Position ,Shape ,Grid,Color} from './types';
+import { Position, Shape, Grid, Color, ColorGrid, TetrominoType, Tetromino } from './types';
 import { Constants } from './constants';
 
-//Define different kinds of shapes 
-const squareShape: Shape =  [[true, true], [true, true]];
-const lShape : Shape =  [
-  [true, true, true], // L-shape
-  [ false, false,true],
-];
-const l2Shape : Shape =  [
-  [true, true, true], // L-shape
-  [ true, false,false],
-];
-const IShape : Shape =[[true, true, true, true]];
+// Classic Tetris Colors for each tetromino type
+const TETROMINO_COLORS: Record<TetrominoType, Color> = {
+  'I': '#00FFFF', // Cyan - I-piece (line)
+  'O': '#FFFF00', // Yellow - O-piece (square)  
+  'T': '#8B00FF', // Purple - T-piece
+  'S': '#00FF00', // Green - S-piece
+  'Z': '#FF0000', // Red - Z-piece
+  'J': '#0000FF', // Blue - J-piece
+  'L': '#FFA500', // Orange - L-piece
+};
 
-const tShape : Shape = [[true, true, true], [false,true, false]] ;
+// Define different kinds of shapes with their types
+const tetrominoes: Record<TetrominoType, Shape> = {
+  'O': [[true, true], [true, true]], // Square
+  'I': [[true, true, true, true]], // Line
+  'T': [[true, true, true], [false, true, false]], // T-shape
+  'L': [[true, true, true], [true, false, false]], // L-shape
+  'J': [[true, true, true], [false, false, true]], // J-shape (reverse L)
+  'S': [[false, true, true], [true, true, false]], // S-shape
+  'Z': [[true, true, false], [false, true, true]], // Z-shape
+};
 
-const zShape : Shape =[[false ,true , true],[true , true , false]];
-
-const z2Sape : Shape =[[true ,true , false],[false , true , true]];
+// For backward compatibility
+const squareShape: Shape = tetrominoes['O'];
 
 /**
- * Array of shapes used in Tetris.
+ * Creates a tetromino object with shape, type, and color
  */
-const allShapes = (): Shape[] => [squareShape,IShape,l2Shape,lShape,tShape,z2Sape,zShape];
+const createTetromino = (type: TetrominoType): Tetromino => ({
+  shape: tetrominoes[type],
+  type: type,
+  color: TETROMINO_COLORS[type]
+});
 
 /**
- * Array of colors used for Tetris blocks with different shades of yellow.
+ * Gets a random tetromino type
  */
-const colors = (): Color[] => [
-  '#FFFFE0', // Light Yellow (Lightest shade)
-  '#FFFF99', // Pale Yellow
-  '#FFFF66', // Light Goldenrod Yellow
-  '#FFFF33', // Light Yellow (Bright shade)
-  '#FFFF00', // Pure Yellow (Standard Yellow)
-  '#F7E300', // Golden Yellow
-  '#F0E300', // Darker Yellow
-  '#E5E500', // Dark Yellow (Darker shade)
-  '#B8B800' , // Olive Yellow (Darker shade)
-];
+const getRandomTetrominoType = (): TetrominoType => {
+  const types: TetrominoType[] = ['I', 'O', 'T', 'S', 'Z', 'J', 'L'];
+  return types[Math.floor(Math.random() * types.length)];
+};
+
+/**
+ * Gets a random tetromino with proper type and color
+ */
+const getRandomTetromino = (): Tetromino => {
+  const type = getRandomTetrominoType();
+  return createTetromino(type);
+};
 
 /**
  * Creates an empty grid with no occupied cells.
  * @returns Empty grid
  */
 const emptyGrid = (): Grid =>
-Array(Constants.GRID_HEIGHT).fill(Array(Constants.GRID_WIDTH).fill(false));
+  Array(Constants.GRID_HEIGHT).fill(null).map(() => 
+    Array(Constants.GRID_WIDTH).fill(false)
+  );
+
+/**
+ * Creates an empty color grid with no colors.
+ * @returns Empty color grid
+ */
+const emptyColorGrid = (): ColorGrid =>
+  Array(Constants.GRID_HEIGHT).fill(null).map(() => 
+    Array(Constants.GRID_WIDTH).fill(null)
+  );
 
 /**
  * Checks if a given position and shape would result in a collision with the existing grid.
@@ -122,28 +145,22 @@ const placeShapesOfBlocks = (position: Position, shape: Shape, grid: Grid): Grid
 };
 
 /**
- * Generates a random item from an array of items.
- * @param items Array of items
- * @returns Random item
+ * Places a tetromino's colors on the color grid based on its position.
+ * @param position Current position of the tetromino
+ * @param tetromino Tetromino to be placed
+ * @param colorGrid Current color grid state
+ * @returns Updated color grid with placed tetromino colors
  */
-const getRandomItem = <T>(items: T[]): T => {
-  const randomIndex = Math.floor(Math.random() * items.length);
-  return items[randomIndex];
+const placeTetrominoColors = (position: Position, tetromino: Tetromino, colorGrid: ColorGrid): ColorGrid => {
+  return colorGrid.map((row, rowIndex) =>
+    row.map((color, columnIndex) => {
+      const rowPosition = rowIndex - position[0];
+      const columnPosition = columnIndex - position[1];
+      const isOccupied = tetromino.shape[rowPosition]?.[columnPosition] ?? false;
+      return color || (isOccupied ? tetromino.color : null);
+    })
+  );
 };
-
-/**
- * Get a random color for a Tetris block.
- */
-const getRandomColor = (): Color => {
-  const colorArray = colors();
-  const randomIndex = Math.floor(Math.random() * colorArray.length);
-  return colorArray[randomIndex];
-};
-
-// Use the generic function to get a random color or shape
-const randomColors = (): Color => getRandomColor();
-const randomShapes = (): Shape => getRandomItem(allShapes());
-
 
 /**
  * Checks if the first row of the grid is fully occupied.
@@ -180,7 +197,6 @@ const scoreThresholdForNextLevel = (level: number): number => {
   return baseThreshold + (increment * (level - 1));
 };
 
-
 /**
  * Checks if a given position is valid for the shape placement.
  * @param position Current position of the shape
@@ -200,7 +216,26 @@ const isPositionValid = (position: Position, shape: Shape): boolean => {
     maxCol >= Constants.GRID_WIDTH // Right boundary
   ) ? false : true;
 };
+
+// Legacy functions for backward compatibility
+const randomShapes = (): Shape => getRandomTetromino().shape;
+const randomColors = (): Color => getRandomTetromino().color;
   
-  export{
-    checkCollision ,randomShapes  ,placeShapesOfBlocks , emptyGrid , isFirstRowFilled,scoreThresholdForNextLevel,rowIsFilled,squareShape,randomColors,isPositionValid,rotateShape
-  };
+export {
+  checkCollision,
+  randomShapes,
+  placeShapesOfBlocks,
+  placeTetrominoColors,
+  emptyGrid,
+  emptyColorGrid,
+  isFirstRowFilled,
+  scoreThresholdForNextLevel,
+  rowIsFilled,
+  squareShape,
+  randomColors,
+  isPositionValid,
+  rotateShape,
+  getRandomTetromino,
+  createTetromino,
+  TETROMINO_COLORS
+};

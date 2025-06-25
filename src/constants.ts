@@ -2,10 +2,10 @@
  * Constants used in the Tetris game.
  */
 const Viewport = {
-  CANVAS_WIDTH: 200, // The width of the game canvas
-  CANVAS_HEIGHT: 400, // The height of the game canvas
+  CANVAS_WIDTH: 400, // The width of the game canvas (10 blocks * 40px)
+  CANVAS_HEIGHT: 800, // The height of the game canvas (20 blocks * 40px)
   PREVIEW_WIDTH: 160, // The width of the preview canvas
-  PREVIEW_HEIGHT: 80, // The height of the preview canvas
+  PREVIEW_HEIGHT: 160, // The height of the preview canvas
 };
 
 const Constants = {
@@ -15,8 +15,8 @@ const Constants = {
 };
 
 const Block = {
-  WIDTH: Viewport.CANVAS_WIDTH / Constants.GRID_WIDTH, // The width of a single block
-  HEIGHT: Viewport.CANVAS_HEIGHT / Constants.GRID_HEIGHT, // The height of a single block
+  WIDTH: 40, // The width of a single block (much larger for better visibility)
+  HEIGHT: 40, // The height of a single block (much larger for better visibility)
 };
 
-  export {Viewport ,Constants , Block};
+export {Viewport ,Constants , Block};

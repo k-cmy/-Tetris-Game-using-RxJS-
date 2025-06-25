@@ -2,30 +2,41 @@
  * State processing functions for managing the game state and updating it.
  */
 
-import { Position ,State ,Grid } from './types';
-import { checkCollision, placeShapesOfBlocks, randomShapes, squareShape , emptyGrid ,isFirstRowFilled,rowIsFilled,scoreThresholdForNextLevel ,isPositionValid,randomColors } from './util';
+import { Position, State, Grid, ColorGrid } from './types';
+import { 
+  checkCollision, 
+  placeShapesOfBlocks, 
+  placeTetrominoColors,
+  emptyGrid, 
+  emptyColorGrid,
+  isFirstRowFilled,
+  rowIsFilled,
+  scoreThresholdForNextLevel,
+  isPositionValid,
+  getRandomTetromino,
+  createTetromino
+} from './util';
 import { Constants } from './constants'; 
 import { pipe } from 'rxjs';
   
 /**
  * Initial state of the Tetris game.
  */
-
-  const initialState: State = {
-    gameEnd: false,
-    currentPosition: [0, 0],
-    score: 0,
-    grid: emptyGrid(),
-    shape: squareShape,
-    nextShape:randomShapes(),
-    level: 0,
-    highScore: 0,
-    color: randomColors(),
-    blockElements: [],
-    speed: Constants.TICK_RATE_MS ,
-    initialSpeed : Constants.TICK_RATE_MS,
-    gameStop: false
-  };
+const initialState: State = {
+  gameEnd: false,
+  currentPosition: [0, Math.floor(Constants.GRID_WIDTH / 2) - 1],
+  score: 0,
+  grid: emptyGrid(),
+  colorGrid: emptyColorGrid(),
+  currentTetromino: createTetromino('O'), // Start with square piece
+  nextTetromino: getRandomTetromino(),
+  level: 0,
+  highScore: 0,
+  blockElements: [],
+  speed: Constants.TICK_RATE_MS,
+  initialSpeed: Constants.TICK_RATE_MS,
+  gameStop: false
+};
   
 /**
  * Updates the state by proceeding with one time step.
@@ -57,41 +68,41 @@ const tick = (s: State, movement: Position): State => {
  * @param movement User input movement [row, col]
  * @returns Updated state after moving the Tetromino
  */
- const moveShapesOfBlocks = (movement: Position) => (s: State): State => {
+const moveShapesOfBlocks = (movement: Position) => (s: State): State => {
   const newCurrentPosition: Position = [
     s.currentPosition[0] + movement[0],
     s.currentPosition[1] + movement[1],
   ];
 
-  if (!isPositionValid(newCurrentPosition, s.shape)) {
+  if (!isPositionValid(newCurrentPosition, s.currentTetromino.shape)) {
     return s;
   }
 
-  if (!checkCollision(newCurrentPosition, s.shape, s.grid)) {
+  if (!checkCollision(newCurrentPosition, s.currentTetromino.shape, s.grid)) {
     return {
       ...s,
       currentPosition: newCurrentPosition,
     };
   }
 
-  // Place the shape on the grid
-  const newGrid = placeShapesOfBlocks(s.currentPosition, s.shape, s.grid);
+  // Place the tetromino on the grid
+  const newGrid = placeShapesOfBlocks(s.currentPosition, s.currentTetromino.shape, s.grid);
+  const newColorGrid = placeTetrominoColors(s.currentPosition, s.currentTetromino, s.colorGrid);
 
   // Clear any filled rows and update the score
-  const [clearedGrid, updatedScore] = clearRowsAndScore(newGrid, s.score, 0);
+  const [clearedGrid, clearedColorGrid, updatedScore] = clearRowsAndScore(newGrid, newColorGrid, s.score);
 
-  // Generate the next shape and color
-  const newNextShape = randomShapes();
-  const newColor = randomColors();
+  // Generate the next tetromino
+  const newNextTetromino = getRandomTetromino();
 
   // Return the new state with all updates
   return {
     ...s,
-    currentPosition: [0, Math.floor(Constants.GRID_WIDTH / 2)], // Reset position for the next shape
+    currentPosition: [0, Math.floor(Constants.GRID_WIDTH / 2) - 1], // Reset position for the next shape
     grid: clearedGrid,
-    shape: s.nextShape,
-    nextShape: newNextShape,
-    color: newColor,
+    colorGrid: clearedColorGrid,
+    currentTetromino: s.nextTetromino,
+    nextTetromino: newNextTetromino,
     score: updatedScore,
   };
 };
@@ -114,12 +125,13 @@ const checkGameLost = (s: State): State => {
  * @returns Updated game state with cleared rows and updated score
  */
 const updateGridAndScore = (s: State): State => {
-  const [newGrid, newScore] = clearRowsAndScore(s.grid, s.score, 0);
+  const [newGrid, newColorGrid, newScore] = clearRowsAndScore(s.grid, s.colorGrid, s.score);
   
   // Create a new state with updated grid and score
   return {
     ...s,
     grid: newGrid,
+    colorGrid: newColorGrid,
     score: newScore,
   };
 };
@@ -129,7 +141,6 @@ const updateGridAndScore = (s: State): State => {
  * @param s Current game state
  * @returns Updated game state with adjusted level
  */
-
 const updateLevel = (s: State): State => {
   const currentLevel = s.level;
   const thresholdForNextLevel = scoreThresholdForNextLevel(currentLevel);
@@ -159,26 +170,40 @@ const updateSpeed = (s: State): State => {
 };
 
 /**
- * Clears filled rows from the grid and calculates the updated score and number of cleared rows.
+ * Clears filled rows from both grids and calculates the updated score.
  * @param grid Current grid state
+ * @param colorGrid Current color grid state
  * @param score Current score
- * @param numRowsCleared Number of rows cleared in previous rounds
- * @returns Updated grid, score, and total number of cleared rows
+ * @returns Updated grid, color grid, and score
  */
-const clearRowsAndScore = (grid: Grid, score: number, numRowsCleared: number): [Grid, number, number] => {
-  const nonFilledRows = grid.filter(row => !rowIsFilled(row));
-  const numRowsClearedThisRound = Constants.GRID_HEIGHT - nonFilledRows.length;
+const clearRowsAndScore = (grid: Grid, colorGrid: ColorGrid, score: number): [Grid, ColorGrid, number] => {
+  const nonFilledRowIndices = grid.map((row, index) => ({ row, index }))
+    .filter(({ row }) => !rowIsFilled(row))
+    .map(({ index }) => index);
+  
+  const numRowsClearedThisRound = Constants.GRID_HEIGHT - nonFilledRowIndices.length;
   const newScore = score + (numRowsClearedThisRound * 100);
   
-  const rowsToAddToLevelUp = Array(numRowsClearedThisRound).fill(Array(Constants.GRID_WIDTH).fill(false));
-
-  // Create the new grid by adding empty rows at the top
-  const updatedGrid = rowsToAddToLevelUp.concat(nonFilledRows);
+  // Create new grids with only non-filled rows
+  const nonFilledRows = nonFilledRowIndices.map(index => grid[index]);
+  const nonFilledColorRows = nonFilledRowIndices.map(index => colorGrid[index]);
   
-  return [updatedGrid, newScore, numRowsCleared + numRowsClearedThisRound];
+  // Add empty rows at the top to maintain grid size
+  const emptyRows = Array(numRowsClearedThisRound).fill(null).map(() => 
+    Array(Constants.GRID_WIDTH).fill(false)
+  );
+  const emptyColorRows = Array(numRowsClearedThisRound).fill(null).map(() => 
+    Array(Constants.GRID_WIDTH).fill(null)
+  );
+
+  // Create the new grids by adding empty rows at the top
+  const updatedGrid = emptyRows.concat(nonFilledRows);
+  const updatedColorGrid = emptyColorRows.concat(nonFilledColorRows);
+  
+  return [updatedGrid, updatedColorGrid, newScore];
 };
 
-  /**
+/**
  * Checks if the game is lost by evaluating whether the first row of the grid is filled.
  * @param grid Current grid state
  * @returns True if the game is lost, false otherwise
@@ -200,5 +225,4 @@ const gameLost = (grid: Grid): boolean => {
 const updateStates = <T>(state: State, property: keyof State, value: T, condition: boolean): State =>
   condition ? { ...state, [property]: value } : state;
 
-
-export {tick  , initialState};
+export { tick, initialState };
