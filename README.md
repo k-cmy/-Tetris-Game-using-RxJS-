@@ -6,7 +6,7 @@ A modern, professional implementation of the classic Tetris game built with **Ty
 
 ## 🚀 Live Demo
 
-🌐 **[Play the Game Online](https://your-tetris-game.netlify.app)** *(Deploy to get your live URL)*
+🌐 **[Play the Game Online](https://kcmy-tetris-game-rxjs.netlify.app/)**
 
 ## ✨ Features
 
@@ -79,7 +79,7 @@ src/
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/tetris-game-rxjs.git
+git clone https://github.com/k-cmy/-Tetris-Game-using-RxJS- 
 cd tetris-game-rxjs
 ```
 
@@ -93,7 +93,7 @@ npm install
 npm run dev
 ```
 
-4. **Open your browser** to `http://localhost:5173`
+4. **Open your browser** to `http://localhost:5174`
 
 ## 🎮 How to Play
 
