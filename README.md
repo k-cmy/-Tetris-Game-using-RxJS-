@@ -2,6 +2,8 @@
 
 ## Usage
 
+![alt text](image.png)
+
 Setup (requires node.js):
 ```
 > npm install
